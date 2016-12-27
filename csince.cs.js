@@ -1,5 +1,18 @@
 var cmake_versions = [
-    /*"v2.8.0",
+    "v3.0",
+    "v3.1",
+    "v3.2",
+    "v3.3",
+    "v3.4",
+    "v3.5",
+    "v3.6",
+    "v3.7",
+    "latest"
+];
+
+var cmake_old_versions = [
+    "v2.6",
+    "v2.8.0",
     "v2.8.1",
     "v2.8.2",
     "v2.8.3",
@@ -11,16 +24,7 @@ var cmake_versions = [
     "v2.8.9",
     "v2.8.10",
     "v2.8.11",
-    "v2.8.12",*/
-    "v3.0",
-    "v3.1",
-    "v3.2",
-    "v3.3",
-    "v3.4",
-    "v3.5",
-    "v3.6",
-    "v3.7",
-    "latest"
+    "v2.8.12"
 ];
 
 var h1_elements = document.getElementsByTagName('h1');
@@ -55,18 +59,34 @@ if (checking_required) {
 
     check_version(
         checked_url,
-        Math.floor(initial_version_index/2),
+        0,
         initial_version_index,
         checked_path
     );
 }
 
-function check_version (checked_url_, lower_version_index_, upper_version_index_, checked_path_) {
-    if (lower_version_index_ == upper_version_index_) {
-        show_since(cmake_versions[lower_version_index_]);
+function check_version(checked_url_, lower_version_index_, upper_version_index_, checked_path_) {
+    if (lower_version_index_ > upper_version_index_) {
+        if (lower_version_index_ == 0) {
+            // reached v3.0: feature may be present in old versions
+            var checked_feature = checked_path.substr(checked_path.lastIndexOf('/') + 1);
+            checked_feature = checked_feature.substr(0, checked_feature.indexOf('.html'));
+
+            check_old_version(
+                checked_url,
+                0,
+                cmake_old_versions.length - 1,
+                checked_feature
+            );
+        }
+        else {
+            show_since(cmake_versions[lower_version_index_]);
+        }
     }
     else {
-        var checked_version = cmake_versions[lower_version_index_];
+        var current_version_index = Math.floor(lower_version_index_ + (upper_version_index_ - lower_version_index_)/2);
+
+        var checked_version = cmake_versions[current_version_index];
 
         var xhttp = new XMLHttpRequest();
 
@@ -75,15 +95,15 @@ function check_version (checked_url_, lower_version_index_, upper_version_index_
                 if (this.status == 200) {
                     check_version(
                         checked_url_,
-                        Math.floor(lower_version_index_/2),
                         lower_version_index_,
+                        current_version_index-1,
                         checked_path_
                     );
                 }
                 else if (this.status == 404) {
                     check_version(
                         checked_url_,
-                        Math.floor(1 + (lower_version_index_ + upper_version_index_)/2),
+                        current_version_index+1,
                         upper_version_index_,
                         checked_path_
                     );
@@ -91,7 +111,54 @@ function check_version (checked_url_, lower_version_index_, upper_version_index_
             }
         };
 
-        xhttp.open('GET', checked_url + checked_version + checked_path, true);
+        xhttp.open('GET', checked_url_ + checked_version + checked_path_, true);
+        xhttp.send();
+    }
+}
+
+function check_old_version(checked_url_, lower_version_index_, upper_version_index_, checked_feature_) {
+    if (lower_version_index_ > upper_version_index_) {
+        show_since(cmake_old_versions[lower_version_index_]);
+    }
+    else {
+        var current_version_index = Math.floor(lower_version_index_ + (upper_version_index_ - lower_version_index_)/2);
+
+        var checked_version = cmake_old_versions[current_version_index];
+
+        var xhttp = new XMLHttpRequest();
+
+        var to_open = checked_url_ + "cmake2.6docs.html";
+
+        if (current_version_index >= cmake_old_versions.indexOf("v2.8.0")) {
+            to_open = checked_url_ + checked_version + "/cmake.html";
+        }
+
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                if (this.responseText.includes(checked_feature_)) {
+                    check_old_version(
+                        checked_url_,
+                        lower_version_index_,
+                        current_version_index-1,
+                        checked_feature_
+                    );
+                }
+                else if (current_version_index < cmake_old_versions.length-1) {
+                    check_old_version(
+                        checked_url_,
+                        current_version_index+1,
+                        upper_version_index_,
+                        checked_feature_
+                    );
+                }
+                else {
+                    // the feature doesn't exist in old versions
+                    show_since(cmake_versions[0]);
+                }
+            }
+        };
+
+        xhttp.open('GET', to_open, true);
         xhttp.send();
     }
 }

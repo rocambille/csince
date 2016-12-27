@@ -2,7 +2,7 @@
     "description": "",
     "manifest_version": 2,
     "name": "CSince",
-    "version": "0.1",
+    "version": "1.0",
     "homepage_url": "https://github.com/wasthishelpful/csince",
     "icons": {
         "48": "icons/csince.png"
