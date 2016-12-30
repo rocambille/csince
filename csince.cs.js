@@ -14,8 +14,7 @@ var cmake_versions = [
     "v3.4",
     "v3.5",
     "v3.6",
-    "v3.7",
-    "latest"
+    "v3.7"
 ];
 
 var cmake_old_versions = [
@@ -35,90 +34,128 @@ var cmake_old_versions = [
     "v2.8.12"
 ];
 
-var h1_elements = document.getElementsByTagName('h1');
-var i;
-var checking_required = false;
-
-for (i = 0; i < h1_elements.length; ++i)
+Array.prototype.last = function()
 {
-    if (h1_elements[i].textContent != 'Not Found')
+    return this[this.length-1];
+};
+
+Math.middle = function(begin_, end_)
+{
+    return Math.floor(
+        begin_ + (
+            end_ - begin_
+        )/2
+    );
+}
+
+var checked_url = location.protocol + '//cmake.org/cmake/help/';
+var checked_path = location.href.substr(checked_url.length);
+
+var initial_version = checked_path.substr(0, checked_path.indexOf('/'));
+
+checked_path = checked_path.substr(initial_version.length);
+
+if (initial_version == "latest")
+{
+    initial_version = cmake_versions.last();
+}
+
+var initial_version_index = cmake_versions.indexOf(initial_version);
+
+if (initial_version_index >= 0)
+{
+    var h1_elements = document.getElementsByTagName('h1');
+    var i;
+
+    for (i = 0; i < h1_elements.length; ++i)
     {
-        checking_required = true;
+        if (h1_elements[i].textContent != 'Not Found')
+        {
+            var csince_element = document.createElement('span');
+            csince_element.className = 'csince';
+            csince_element.textContent = '(CSince checking version...)';
 
-        var csince_element = document.createElement('span');
-        csince_element.className = 'csince';
-        csince_element.textContent = '(CSince checking version...)';
+            h1_elements[i].parentNode.insertBefore(
+                csince_element,
+                h1_elements[i].nextSibling
+            );
+        }
+    }
 
-        h1_elements[i].parentNode.insertBefore(
-            csince_element,
-            h1_elements[i].nextSibling
+    if (
+        !has_reached_v3_0(
+            checked_url,
+            initial_version_index,
+            checked_path
+        )
+    )
+    {
+        // check v3.0 first, as a pre-test for all modern versions
+        check_version(
+            checked_url,
+            0,
+            initial_version_index,
+            checked_path,
+            0 // force checked version
         );
     }
 }
 
-if (checking_required) {
-    var checked_url = location.protocol + '//cmake.org/cmake/help/';
-    var checked_path = location.href.substr(checked_url.length);
-
-    var initial_version = checked_path.substr(0, checked_path.indexOf('/'));
-    checked_path = checked_path.substr(initial_version.length);
-
-    var initial_version_index = cmake_versions.indexOf(initial_version);
-
-    if (initial_version_index < 0)
+function has_reached_v3_0(
+    checked_url_,
+    checked_version_index_,
+    checked_path_
+)
+{
+    if (checked_version_index_ == 0)
     {
-        // use latest version
-        initial_version_index = cmake_versions.length - 1;
+        // reached v3.0: feature may be present in old versions
+        var checked_feature = checked_path_.substr(
+            checked_path_.lastIndexOf('/') + 1
+        );
+        checked_feature = checked_feature.substr(
+            0, checked_feature.indexOf('.html')
+        );
+
+        check_old_version(
+            checked_url_,
+            0,
+            cmake_old_versions.length - 1,
+            checked_feature
+        );
+
+        return true;
     }
 
-    check_version(
-        checked_url,
-        0,
-        initial_version_index,
-        checked_path
-    );
+    return false;
 }
 
 function check_version(
     checked_url_,
     lower_version_index_,
     upper_version_index_,
-    checked_path_
+    checked_path_,
+    checked_version_index_ = Math.middle(
+        lower_version_index_, upper_version_index_
+    )
 )
 {
     if (lower_version_index_ > upper_version_index_)
     {
-        if (lower_version_index_ == 0)
-        {
-            // reached v3.0: feature may be present in old versions
-            var checked_feature = checked_path.substr(
-                checked_path.lastIndexOf('/') + 1
-            );
-            checked_feature = checked_feature.substr(
-                0, checked_feature.indexOf('.html')
-            );
-
-            check_old_version(
-                checked_url,
-                0,
-                cmake_old_versions.length - 1,
-                checked_feature
-            );
-        }
-        else
+        if (
+            !has_reached_v3_0(
+                checked_url_,
+                lower_version_index_,
+                checked_path_
+            )
+        )
         {
             show_since(cmake_versions[lower_version_index_]);
         }
     }
     else
     {
-        var current_version_index = Math.floor(
-            lower_version_index_ + (
-                upper_version_index_ - lower_version_index_
-            )/2
-        );
-
-        var checked_version = cmake_versions[current_version_index];
+        var checked_version = cmake_versions[checked_version_index_];
 
         var xhttp = new XMLHttpRequest();
 
@@ -131,7 +168,7 @@ function check_version(
                     check_version(
                         checked_url_,
                         lower_version_index_,
-                        current_version_index-1,
+                        checked_version_index_ - 1,
                         checked_path_
                     );
                 }
@@ -139,7 +176,7 @@ function check_version(
                 {
                     check_version(
                         checked_url_,
-                        current_version_index+1,
+                        checked_version_index_ + 1,
                         upper_version_index_,
                         checked_path_
                     );
@@ -169,19 +206,17 @@ function check_old_version(
     }
     else
     {
-        var current_version_index = Math.floor(
-            lower_version_index_ + (
-                upper_version_index_ - lower_version_index_
-            )/2
+        var checked_version_index_ = Math.middle(
+            lower_version_index_, upper_version_index_
         );
 
-        var checked_version = cmake_old_versions[current_version_index];
+        var checked_version = cmake_old_versions[checked_version_index_];
 
         var xhttp = new XMLHttpRequest();
 
         var to_open = checked_url_ + "cmake2.6docs.html";
 
-        if (current_version_index >= cmake_old_versions.indexOf("v2.8.0"))
+        if (checked_version_index_ >= cmake_old_versions.indexOf("v2.8.0"))
         {
             to_open = checked_url_ + checked_version + "/cmake.html";
         }
@@ -195,15 +230,15 @@ function check_old_version(
                     check_old_version(
                         checked_url_,
                         lower_version_index_,
-                        current_version_index-1,
+                        checked_version_index_ - 1,
                         checked_feature_
                     );
                 }
-                else if (current_version_index < cmake_old_versions.length-1)
+                else if (checked_version_index_ < cmake_old_versions.length-1)
                 {
                     check_old_version(
                         checked_url_,
-                        current_version_index+1,
+                        checked_version_index_ + 1,
                         upper_version_index_,
                         checked_feature_
                     );
