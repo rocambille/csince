@@ -6,8 +6,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-(function(){
-    var MyMath = {
+;(function(){
+    let MyMath = {
         middle: function(begin_, end_)
         {
             return Math.floor(
@@ -18,7 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         }
     };
 
-    var CSince = {
+    let CSince = {
         cmake_versions: [
             "v3.0",
             "v3.1",
@@ -28,7 +28,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             "v3.5",
             "v3.6",
             "v3.7",
-            "v3.8"
+            "v3.8",
+            "v3.9"
         ],
         cmake_old_versions: [
             "v2.6",
@@ -50,11 +51,41 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         {
             this.init();
 
-            var initial_version_index = this.cmake_versions.indexOf(
+            let excluded_features = [
+                '',
+                'index',
+                'cmake.1',
+                'ctest.1',
+                'cpack.1',
+                'cmake-gui.1',
+                'ccmake.1',
+                'cmake-buildsystem.7',
+                'cmake-commands.7',
+                'cmake-compile-features.7',
+                'cmake-developer.7',
+                'cmake-generator-expressions.7',
+                'cmake-generators.7',
+                'cmake-language.7',
+                'cmake-server.7',
+                'cmake-modules.7',
+                'cmake-packages.7',
+                'cmake-policies.7',
+                'cmake-properties.7',
+                'cmake-qt.7',
+                'cmake-toolchains.7',
+                'cmake-variables.7',
+                'genindex',
+                'search'
+            ];
+
+            let initial_version_index = this.cmake_versions.indexOf(
                 this.initial_version
             );
 
-            if (initial_version_index >= 0)
+            if (
+                excluded_features.indexOf(this.checked_feature) < 0 &&
+                initial_version_index >= 0
+            )
             {
                 this.create_and_insert_csince_elements();
 
@@ -107,35 +138,29 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         },
         create_and_insert_csince_elements: function()
         {
-            Array.from(document.getElementsByTagName('h1')).forEach(
-                function(h1_element)
-                {
-                    if (h1_element.textContent != 'Not Found')
-                    {
-                        var csince_element = document.createElement('span');
-                        csince_element.className = 'csince';
-                        csince_element.textContent = '(CSince checking version...)';
+            let h1_element = document.querySelector('h1');
 
-                        h1_element.parentNode.insertBefore(
-                            csince_element,
-                            h1_element.nextSibling
-                        );
-                    }
-                }
-            );
+            if (h1_element.textContent != 'Not Found')
+            {
+                let csince_element = document.createElement('span');
+                csince_element.className = 'csince';
+                csince_element.textContent = '(CSince checking version...)';
+
+                h1_element.parentNode.insertBefore(
+                    csince_element,
+                    h1_element.nextSibling
+                );
+            }
         },
         update_csince_elements: function(version_, still_checking = false)
         {
-            Array.from(document.getElementsByClassName('csince')).forEach(
-                function(csince_element)
-                {
-                    csince_element.textContent =
-                        '(since ' +
-                        (still_checking ? 'at least ' : '') +
-                        'CMake ' +
-                        version_ + ')';
-                }
-            );
+            let csince_element = document.querySelector('.csince');
+
+            csince_element.textContent =
+                '(since ' +
+                (still_checking ? 'at least ' : '') +
+                'CMake ' +
+                version_ + ')';
         },
         check_version_3_0: function(
             checked_version_index_,
@@ -177,11 +202,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             }
             else
             {
-                var checked_version = this.cmake_versions[
+                let checked_version = this.cmake_versions[
                     checked_version_index_
                 ];
 
-                var xhttp = new XMLHttpRequest();
+                let xhttp = new XMLHttpRequest();
 
                 xhttp.onreadystatechange = function()
                 {
@@ -231,13 +256,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             }
             else
             {
-                var checked_version = this.cmake_old_versions[
+                let checked_version = this.cmake_old_versions[
                     checked_version_index_
                 ];
 
-                var xhttp = new XMLHttpRequest();
+                let xhttp = new XMLHttpRequest();
 
-                var to_open = this.checked_url + "cmake2.6docs.html";
+                let to_open = this.checked_url + "cmake2.6docs.html";
 
                 if (checked_version_index_ >= this.cmake_old_versions.indexOf("v2.8.0"))
                 {
