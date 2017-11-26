@@ -29,7 +29,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             "v3.6",
             "v3.7",
             "v3.8",
-            "v3.9"
+            "v3.9",
+            "v3.10"
         ],
         cmake_old_versions: [
             "v2.6",
