@@ -30,7 +30,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             "v3.7",
             "v3.8",
             "v3.9",
-            "v3.10"
+            "v3.10",
+            "v3.11"
         ],
         cmake_old_versions: [
             "v2.6",
@@ -88,24 +89,35 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 initial_version_index >= 0
             )
             {
-                this.create_and_insert_csince_elements();
+                this.insert_csince_version();
 
-                this.update_csince_elements(
-                    this.initial_version, true
+                let last_found_version = this.retrieve_version(
+                    this.checked_feature
                 );
 
-                // check v3.0 first, as a pre-test for all modern versions
-                this.check_version_3_0(
-                    initial_version_index,
-                    function()
-                    {
-                        CSince.check_version(
-                            0,
-                            initial_version_index,
-                            0 // force checked version
-                        );
-                    }
-                );
+                if (last_found_version)
+                {
+                    this.print_csince_version(last_found_version);
+                }
+                else
+                {
+                    this.print_csince_version(
+                        this.initial_version, true
+                    );
+
+                    // check v3.0 first, as a pre-test for all modern versions
+                    this.check_version_3_0(
+                        initial_version_index,
+                        function()
+                        {
+                            CSince.check_version(
+                                0,
+                                initial_version_index,
+                                0 // force checked version
+                            );
+                        }
+                    );
+                }
             }
         },
         init: function()
@@ -130,14 +142,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 0, this.checked_feature.indexOf('.html')
             );
 
-            if (this.initial_version == "latest")
+            let special_versions = [
+                "git-stage",
+                "git-master",
+                "latest"
+            ]
+
+            if (special_versions.indexOf(this.initial_version) >= 0)
             {
                 this.initial_version = this.cmake_versions[
                     this.cmake_versions.length - 1
                 ];
             }
         },
-        create_and_insert_csince_elements: function()
+        insert_csince_version: function()
         {
             let h1_element = document.querySelector('h1');
 
@@ -153,15 +171,59 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 );
             }
         },
-        update_csince_elements: function(version_, still_checking = false)
+        print_csince_version: function(version_, still_checking = false)
         {
             let csince_element = document.querySelector('.csince');
 
-            csince_element.textContent =
-                '(since ' +
-                (still_checking ? 'at least ' : '') +
-                'CMake ' +
-                version_ + ')';
+            csince_element.textContent = '(since ';
+
+            if (still_checking)
+            {
+                csince_element.textContent += 'at least ';
+            }
+            else
+            {
+                this.store_version(this.checked_feature, version_);
+            }
+
+            csince_element.textContent += 'CMake ' + version_ + ')';
+        },
+        store_version: function(feature_, version_)
+        {
+            if (typeof(Storage) !== "undefined")
+            {
+                let csince_data = {
+                    feature_versions: {}
+                };
+
+                if (localStorage.csince)
+                {
+                    csince_data = JSON.parse(localStorage.csince);
+                }
+
+                csince_data.feature_versions[feature_] = version_;
+
+                localStorage.csince = JSON.stringify(csince_data);
+            }
+        },
+        retrieve_version: function(feature_)
+        {
+            let version = null;
+
+            if (typeof(Storage) !== "undefined" && localStorage.csince)
+            {
+                csince_data = JSON.parse(localStorage.csince);
+
+                if (
+                    csince_data.feature_versions &&
+                    csince_data.feature_versions[feature_]
+                )
+                {
+                    version = csince_data.feature_versions[feature_];
+                }
+            }
+
+            return version;
         },
         check_version_3_0: function(
             checked_version_index_,
@@ -195,7 +257,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                     lower_version_index_,
                     function()
                     {
-                        CSince.update_csince_elements(
+                        CSince.print_csince_version(
                             CSince.cmake_versions[lower_version_index_]
                         );
                     }
@@ -215,7 +277,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                     {
                         if (this.status == 200)
                         {
-                            CSince.update_csince_elements(
+                            CSince.print_csince_version(
                                 checked_version, true
                             );
                             CSince.check_version(
@@ -251,7 +313,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         {
             if (lower_version_index_ > upper_version_index_)
             {
-                this.update_csince_elements(
+                this.print_csince_version(
                     this.cmake_old_versions[lower_version_index_]
                 );
             }
@@ -276,7 +338,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                     {
                         if (this.responseText.includes(CSince.checked_feature))
                         {
-                            CSince.update_csince_elements(
+                            CSince.print_csince_version(
                                 checked_version, true
                             );
                             CSince.check_old_version(
@@ -294,7 +356,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                         else
                         {
                             // the feature doesn't exist in old versions
-                            CSince.update_csince_elements(
+                            CSince.print_csince_version(
                                 CSince.cmake_versions[0]
                             );
                         }
