@@ -9,8 +9,8 @@ It checks since which version the feature described in the page exists, and adds
 ## Links
 
 Web site: <https://addons.mozilla.org/fr/firefox/addon/csince/>  
-GitHub repository: <http://github.com/wasthishelpful/csince>  
-E-mail: <wasthishelpful@gmail.com>
+GitHub repository: <http://github.com/rocambille/csince>  
+E-mail: <rocambille@gmail.com>
 
 ## Licensing
 
