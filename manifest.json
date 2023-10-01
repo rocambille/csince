@@ -2,7 +2,7 @@
     "description": "Check since which version a CMake feature exists",
     "manifest_version": 2,
     "name": "CSince",
-    "version": "3.24",
+    "version": "3.27",
     "homepage_url": "https://github.com/rocambille/csince",
     "icons": {
         "48": "icons/csince.png"
