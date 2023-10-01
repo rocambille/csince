@@ -1,14 +1,25 @@
 # CSince
 
-## What it does
+## End of this project
 
-This extension is triggered on [CMake documentation pages](https://cmake.org/cmake/help/latest/).
+_2023-10-01_
 
-It checks since which version the feature described in the page exists, and adds the information to the page contents.
+This project was started in 2016 to provide a missing data in [CMake documentation pages](https://cmake.org/cmake/help/latest/): what version a feature was adding to.
+I was very proud to share this little stone with the community.
+But today in 2023, the Cmake documentation now includes everything that my extension could provide.
+This project therefore no longer has any reason to exist, and it is without regret that I have decided to stop its development.
+It was an opportunity for me to learn on many levels.
+Thank you to the people who contributed to it, hoping that it was useful during its lifetime.
+
+## What it did
+
+This extension was triggered on [CMake documentation pages](https://cmake.org/cmake/help/latest/).
+
+It checked since which version the feature described in the page exists, and added the information to the page contents.
 
 ## Links
 
-Web site: <https://addons.mozilla.org/fr/firefox/addon/csince/>  
+~~Web site: <https://addons.mozilla.org/fr/firefox/addon/csince/>~~  
 GitHub repository: <http://github.com/rocambille/csince>  
 E-mail: <rocambille@gmail.com>
 
